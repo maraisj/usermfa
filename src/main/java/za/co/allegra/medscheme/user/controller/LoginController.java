@@ -1,0 +1,8 @@
+package za.co.allegra.medscheme.user.controller;
+
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController("/login")
+public class LoginController {
+
+}

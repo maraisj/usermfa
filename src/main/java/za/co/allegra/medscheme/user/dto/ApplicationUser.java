@@ -1,7 +1,6 @@
 package za.co.allegra.medscheme.user.dto;
 
 import lombok.Data;
-import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

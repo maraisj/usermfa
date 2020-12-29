@@ -6,6 +6,7 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import org.jboss.aerogear.security.otp.Totp;
+import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.Principal;
+import java.security.SecureRandom;
 
 @Service
 public class TotpService {
@@ -31,11 +33,10 @@ public class TotpService {
     @Value("${mfa.companyName}")
     private String mfaCompanyName;
 
-
-    public byte[] getBarCodeByteArray(Principal principal) throws IOException, WriterException {
+    public byte[] getQRCodeByteArray(Principal principal) throws IOException, WriterException {
         String mfaSecret = ((ApplicationUser) ((UsernamePasswordAuthenticationToken) principal).getPrincipal()).getMfaSecret();
         String username = ((ApplicationUser) ((UsernamePasswordAuthenticationToken) principal).getPrincipal()).getUsername();
-        return createQRCode(getGoogleAuthenticatorBarCode(mfaSecret, username, mfaCompanyName), 200, 200);
+        return createQRCode(getQRCode(mfaSecret, username, mfaCompanyName), 200, 200);
     }
 
     public String validateMFAAndGetToken(Principal principal, Mfa mfa) {
@@ -47,11 +48,18 @@ public class TotpService {
         }
     }
 
-    private String getGoogleAuthenticatorBarCode(String secretKey, String account, String issuer) {
-            return "otpauth://totp/"
-                    + getUrlEncodedString(issuer + ":" + account)
-                    + "?secret=" + getUrlEncodedString(secretKey)
-                    + "&issuer=" + getUrlEncodedString(issuer);
+    public String generateSecret(int secretLength) {
+        SecureRandom randomBytes = new SecureRandom();
+        byte[] bytes = new byte[(secretLength * 5) / 8];
+        randomBytes.nextBytes(bytes);
+        return Base32.encode(bytes);
+    }
+
+    private String getQRCode(String secretKey, String account, String issuer) {
+        return "otpauth://totp/"
+                + getUrlEncodedString(issuer + ":" + account)
+                + "?secret=" + getUrlEncodedString(secretKey)
+                + "&issuer=" + getUrlEncodedString(issuer);
     }
 
     private String getUrlEncodedString(String stringToBeEncoded) {

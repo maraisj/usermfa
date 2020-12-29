@@ -52,10 +52,10 @@ public class JwtAuthenticationController {
         return ResponseEntity.ok(new JwtToken(totpService.validateMFAAndGetToken(principal, mfa)));
     }
 
-    @GetMapping(value = "/barcode", produces = MediaType.IMAGE_PNG_VALUE)
+    @GetMapping(value = "/qrcode", produces = MediaType.IMAGE_PNG_VALUE)
     @PreAuthorize("hasAuthority('PRE_AUTHENTICATED_MFA_REQUIRED')")
     public @ResponseBody
-    byte[] createBarcode(Principal principal) throws IOException, WriterException {
-        return totpService.getBarCodeByteArray(principal);
+    byte[] createQRcode(Principal principal) throws IOException, WriterException {
+        return totpService.getQRCodeByteArray(principal);
     }
 }

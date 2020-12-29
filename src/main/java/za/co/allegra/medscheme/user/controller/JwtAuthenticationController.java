@@ -15,8 +15,10 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import za.co.allegra.medscheme.user.dto.Token;
+import za.co.allegra.medscheme.user.domain.Mfa;
+import za.co.allegra.medscheme.user.dto.JwtToken;
 import za.co.allegra.medscheme.user.service.AuthenticationService;
+import za.co.allegra.medscheme.user.service.TotpService;
 
 import javax.validation.Valid;
 import java.io.IOException;
@@ -28,30 +30,32 @@ import java.security.Principal;
 @Log4j2
 public class JwtAuthenticationController {
     private AuthenticationService authenticationService;
+    private TotpService totpService;
 
-    public JwtAuthenticationController(AuthenticationService authenticationService) {
+    public JwtAuthenticationController(AuthenticationService authenticationService, TotpService totpService) {
         this.authenticationService = authenticationService;
+        this.totpService = totpService;
     }
 
     @PostMapping
-    public ResponseEntity<Token> createAuthenticationToken(@RequestHeader(value = "Authorization", required = true) String authorization) {
+    public ResponseEntity<JwtToken> createAuthenticationToken(@RequestHeader(value = "Authorization", required = true) String authorization) {
         if (ObjectUtils.isNotEmpty(authorization) && authorization.contains("Basic ")) {
             String token = authenticationService.authenticateAndGetToken(authorization);
-            return ResponseEntity.ok(new Token(token));
+            return ResponseEntity.ok(new JwtToken(token));
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
     @PostMapping(value = "mfa")
     @PreAuthorize("hasAuthority('PRE_AUTHENTICATED_MFA_REQUIRED')")
-    public ResponseEntity<Token> createAuthenticationTokenWithMFA(@RequestBody @Valid Mfa mfa, Principal principal) {
-        return ResponseEntity.ok(new Token(authenticationService.validateMFAAndGetToken(principal, mfa)));
+    public ResponseEntity<JwtToken> createAuthenticationTokenWithMFA(@RequestBody @Valid Mfa mfa, Principal principal) {
+        return ResponseEntity.ok(new JwtToken(totpService.validateMFAAndGetToken(principal, mfa)));
     }
 
     @GetMapping(value = "/barcode", produces = MediaType.IMAGE_PNG_VALUE)
     @PreAuthorize("hasAuthority('PRE_AUTHENTICATED_MFA_REQUIRED')")
     public @ResponseBody
     byte[] createBarcode(Principal principal) throws IOException, WriterException {
-        return authenticationService.getBarCodeByteArray(principal);
+        return totpService.getBarCodeByteArray(principal);
     }
 }

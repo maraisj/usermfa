@@ -1,4 +1,4 @@
-package za.co.allegra.medscheme.user.controller;
+package za.co.allegra.medscheme.user.domain;
 
 import lombok.Data;
 

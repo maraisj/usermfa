@@ -50,6 +50,7 @@ public class SecSecurityConfig extends WebSecurityConfigurerAdapter {
         httpSecurity.csrf().disable()
                 .authorizeRequests().antMatchers("/authenticate").permitAll().
                 and().authorizeRequests().antMatchers("/h2-console/**").permitAll().
+                and().authorizeRequests().antMatchers("/randomSecret/**").permitAll().
                 anyRequest().authenticated().and().
                 exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint).and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
